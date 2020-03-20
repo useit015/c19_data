@@ -6,7 +6,28 @@ const { writeData } = require('./write')
 const { getDefenseData } = require('./ministryOfDefense')
 const { getStats, getArticles, fillMissingArticles } = require('./ ministryOfHealth')
 
+const { display } = parseOptions()
+
+function parseOptions() {
+	return process.argv.reduce((acc, arg) => {
+		switch (arg) {
+			case '-d':
+			case '--display':
+				acc.display = true
+				break;
+		}
+		return acc
+	}, {})
+}
+
 function updateData([ stats, articles, defenseArticles ]) {
+	if (display) {
+		console.table({
+			...stats.regions,
+			total: stats.total
+		})
+	}
+
 	readFileAsync('data.json', 'utf8')
 		.then(JSON.parse)
 		.then(({ articles: existingArticles }) => {

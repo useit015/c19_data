@@ -1,11 +1,6 @@
 const { createWriteStream } = require('fs')
 
 function writeData([ stats, articles ]) {
-	console.table({
-		...stats.regions,
-		total: stats.total
-	})
-
 	createWriteStream('data.json')
 		.write(
 			JSON.stringify(
