@@ -34,19 +34,19 @@ async function getStats() {
 	
 	const html = await axios.get(url)
 	const $ = cheerio.load(html.data)
-	
+
+	const getFormatedText = (parent, child) =>
+		$(parent)
+			.find(child)
+			.text()
+			.replace('\\n', '')
+			.trim()
+
 	$('tr').each((i, el) => {
-		const region = $(el)
-						.find('th')
-						.text()
-						.replace('\\n', '')
-						.trim()
-		const cases = $(el)
-						.find('td')
-						.text()
-						.replace('\\n', '')
-						.trim()
-		stats[i] = { region, cases }
+		stats[i] = {
+			region: getFormatedText(el, 'th'),
+			cases: getFormatedText(el, 'td')
+		}
 	})
 
 	const regions = stats
@@ -58,7 +58,7 @@ async function getStats() {
 						acc[cur.region] = cur.cases
 						return acc
 					}, {})
-	
+
 	const total = Object.values(regions)
 					.reduce((acc, cur) => acc + cur) 
 
