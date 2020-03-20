@@ -28,6 +28,16 @@ async function getArticles() {
 	return data
 }
 
+function formatTextFactory(cheerioInstance) {
+	return (parent, child) =>
+		cheerioInstance(parent)
+			.find(child)
+			.text()
+			.replace(/\s+/g, ' ')
+			.replace('\\n', '')
+			.trim()
+}
+
 async function getStats() {
 	const stats = []
 	const url = 'http://www.covidmaroc.ma'
@@ -35,12 +45,7 @@ async function getStats() {
 	const html = await axios.get(url)
 	const $ = cheerio.load(html.data)
 
-	const getFormatedText = (parent, child) =>
-		$(parent)
-			.find(child)
-			.text()
-			.replace('\\n', '')
-			.trim()
+	const getFormatedText = formatTextFactory($)
 
 	$('tr').each((i, el) => {
 		stats[i] = {
@@ -86,10 +91,12 @@ function writeData([ stats, articles ]) {
 		)
 }
 
-function updateData([ stats, articles ]) {
+function updateData([ stats, articles, defenseArticles ]) {
 	readFileAsync('data.json', 'utf8')
 		.then(JSON.parse)
 		.then(({ articles: existingArticles }) => {
+				existingArticles = existingArticles.filter(article => !article.id.includes('defense'))
+
 				const newArticles = articles.filter(newArticle =>
 					!existingArticles.find(article => article.id === newArticle.id)
 				)
@@ -97,6 +104,7 @@ function updateData([ stats, articles ]) {
 				const updated = [
 					stats,
 					[
+						...defenseArticles,
 						...newArticles,
 						...existingArticles
 					]
@@ -111,8 +119,16 @@ function updateData([ stats, articles ]) {
 				console.log('Updated')
 		})
 		.catch(err => {
-			writeData([ stats, articles ])
-			fillMissingArticles([ stats, articles ])
+			const data = [
+				stats,
+				[
+					...defenseArticles,
+					...articles
+				]
+			]
+
+			writeData(data)
+			fillMissingArticles(data)
 		})
 }
 
@@ -120,8 +136,10 @@ function fillMissingArticles([ stats, articles ]) {
 	const getArticleContent = async article => {
 		try {
 			process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
+
 			const html = await axios.get(article.href)
 			const $ = cheerio.load(html.data)
+
 			// ! GET A BETTER SOLUTION
 			article.content = $('.ExternalClass33F20E2A6C3A413F9310FC20D57CAAF3')
 									.text()
@@ -129,6 +147,7 @@ function fillMissingArticles([ stats, articles ]) {
 							$('.ExternalClass83744659CBFE49939F583D44C36F0691')
 									.text()
 									.replace(/\n\s*\n/g, '\n')
+
 			writeData([ stats, articles ])
 		} catch (error) {
 			console.log('THERE WAS AN ERROR WITH => ', error.message)
@@ -142,7 +161,31 @@ function fillMissingArticles([ stats, articles ]) {
 	})
 }
 
-Promise.all([
-	getStats(),
-	getArticles()
-]).then(updateData)
+async function getDefenseData() {
+	const articles = []
+	const url = 'http://covid19.interieur.gov.ma/actualites.aspx'
+	
+	const html = await axios.get(url)
+	const $ = cheerio.load(html.data)
+
+	const getFormatedText = formatTextFactory($)
+
+	$('.mb-5.content').find('.m-3').each((i, el) => {
+		articles[i] = {
+			href: url,
+			id: 'defense' + i,
+			title: getFormatedText(el, 'h5'),
+			content: getFormatedText(el, '.card-text.text-justify')
+		}
+	})
+
+	return articles
+}
+
+Promise.all(
+	[
+		getStats(),
+		getArticles(),
+		getDefenseData()
+	]
+).then(updateData)
