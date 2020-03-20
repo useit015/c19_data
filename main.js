@@ -74,7 +74,11 @@ function writeData([ stats, articles ]) {
 			JSON.stringify(
 				{
 					stats,
-					articles
+					articles,
+					contact: {
+						'Allô SAMU': '141',
+						'Numéro économique': '080 100 47 47'
+					}
 				},
 				null,
 				4
