@@ -53,24 +53,27 @@ async function getNewsSubject(link){
 	return article
 }
 
+async function iselement($, el) {
+	if ($(el).length > 0)
+		return true
+	return false
+}
+
 // This fonction returns an array with Articles titles, its link,
 // its content and the time it was puplished in.
 async function getAllNews(){
 	let news = [];
 
 	let url = "http://mapanticorona.map.ma/"
-	let exist = true
 	let i = 0;
 	let page = `ar?page=${i}`
 
 	
 	do {
-		const { $ } = await load(url.concat(page))
-		exist = $('.pager__item--next').length
 		news = news.concat(await getMapNews(url.concat(page)))
 		console.log(i)
 		i = i + 1;
-	} while (exist !== 0)
+	} while (i < 15)
 
 	return news
 }
