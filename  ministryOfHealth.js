@@ -75,8 +75,11 @@ function fillMissingArticles([ stats, articles ]) {
 		}
 	}
 
-	articles.forEach((article, i) => {
-		if (!article.content && article.href.includes('://')) {
+	const missingArticle = article =>
+		!article.hasOwnPropery('content') && article.href.includes('://')
+
+	articles.forEach(article => {
+		if (missingArticle(article)) {
 			getArticleContent(article)
 		}
 	})

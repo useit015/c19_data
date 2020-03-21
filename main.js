@@ -31,10 +31,14 @@ function updateData([ stats, articles, defenseArticles ]) {
 	readFileAsync('data.json', 'utf8')
 		.then(JSON.parse)
 		.then(({ articles: existingArticles }) => {
-				existingArticles = existingArticles.filter(article => !article.id.includes('defense'))
+				existingArticles = existingArticles.filter(article =>
+					!article.id.includes('defense')
+				)
 
 				const newArticles = articles.filter(newArticle =>
-					!existingArticles.find(article => article.id === newArticle.id)
+					!existingArticles.find(article =>
+						article.id === newArticle.id
+					)
 				)
 				
 				const updated = [
@@ -72,6 +76,7 @@ Promise.all(
 	[
 		getStats(),
 		getArticles(),
-		getDefenseData()
+		// getDefenseData()
+		[]
 	]
 ).then(updateData)
