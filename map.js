@@ -1,8 +1,6 @@
 const { load } = require('./scrapper')
 
 
-// This fonction returns an array with Articles titles, its link,
-// its content and the time it was puplished in.
 
 async function getMapNews(url) {
 	let news = [];
@@ -55,6 +53,8 @@ async function getNewsSubject(link){
 	return article
 }
 
+// This fonction returns an array with Articles titles, its link,
+// its content and the time it was puplished in.
 async function getAllNews(){
 	let news = [];
 
