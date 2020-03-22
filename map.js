@@ -7,7 +7,7 @@ async function getMapNews(url) {
 
 	const { $ } = await load(url)
 
-	$('.col-md-8 h5').each(async (i, element) => {
+	$('.col-md-8 h5').each((i, element) => {
 
 		const h5 = $(element).find('a')
 		const title = h5.text().trim()
@@ -24,7 +24,6 @@ async function getMapNews(url) {
 
 	})
 	news = await addArticles(news)
-	// console.log(news)
 	return news
 }
 
@@ -65,14 +64,68 @@ async function getAllNews(){
 	
 	do {
 		news = news.concat(await getMapNews(url.concat(page)))
-		console.log(i)
 		i = i + 1;
 	} while (i < 15)
 
 	return news
 }
 
+async function getMapUpNews(url, inititle) {
+	let val = {
+		news : [],
+		continu : true
+	}
+
+	const { $ } = await load(url)
+
+	$('.col-md-8 h5').each((i, element) => {
+
+		const h5 = $(element).find('a')
+		const title = h5.text().trim()
+		const link = h5.attr('href')
+		const article =  "";
+		const time = ""
+
+		val.news[i] = {
+			title,
+			link,
+			article,
+			time
+		}
+		
+		if (inititle == title){
+			val.continu = false
+			return false
+		}
+		
+	})
+	val.news = await addArticles(val.news)
+	return val
+}
+
+// This function returns an array with all the news that are not
+// already saved -- It gets as parameter the title of the latest 
+// news in the db
+async function updateNews(title) {
+	let news = [];
+	let value = {}
+	let url = "http://mapanticorona.map.ma/"
+	let i = 0;
+	let page = `ar?page=${i}`
+
+	
+	do {
+		value = await getMapUpNews(url.concat(page), title)
+		news = news.concat(value.news)
+		i = i + 1;
+	} while (value.continu)
+
+	news.pop()
+	return news	
+}
+
 module.exports = {
 	getAllNews,
+	updateNews,
 }
 
