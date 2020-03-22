@@ -53,12 +53,6 @@ async function getNewsSubject(link){
 	return article
 }
 
-async function iselement($, el) {
-	if ($(el).length > 0)
-		return true
-	return false
-}
-
 // This fonction returns an array with Articles titles, its link,
 // its content and the time it was puplished in.
 async function getAllNews(){
