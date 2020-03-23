@@ -4,7 +4,7 @@
   "description": "Moroccan data about COVID19",
   "main": "main.js",
   "scripts": {
-    "start": "node main.js"
+    "start": "node app.js"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,8 @@
   "homepage": "https://github.com/useit015/c19_data#readme",
   "dependencies": {
     "axios": "^0.19.2",
-    "cheerio": "^1.0.0-rc.3"
+    "cheerio": "^1.0.0-rc.3",
+    "express": "^4.17.1",
+    "pug": "^2.0.4"
   }
 }
