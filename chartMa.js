@@ -1,41 +1,50 @@
 const { load } = require('./scrapper')
+const axios = require('axios')
 
-// This give the data about morocco day by day from
-async function getData() {
+function iscountry(country, table) {
+	let i = 0
+	for (const c of table) {
+		const len = country.length
+		const iscountry = c.slice(0, len)
+		if (iscountry == country)
+			return (i)
+		i = i + 1
+	}
+	return -1
+}
 
+async function getDataCsv(country) {
 	let chart = {
-		data : [],
+		table : [],
 		dates : []
 	}
 
-	const { $ } = await load("https://github.com/CSSEGISandData/COVID-19/blob/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+	const html = await axios.get("https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv")
+	chart.table = html.data.split('\n,')
+	const is = await iscountry(country, chart.table)
 
-	$('#LC170').find("td").each((i, element) => {
-		const td = $(element).text().trim()
-		if (i > 4)
-			chart.data[i] = td
-		i += 1;
-	})
-	chart.data.shift()
-	chart.data.shift()
-	chart.data.shift()
-	chart.data.shift()
-	chart.data.shift()
-
-	$('#LC1').find("th").each((j, element) => {
-		const date = $(element).text().trim()
-		if (j > 3)
-			chart.dates[j] = date
-		j += 1;
-	})
-	chart.dates.shift()
-	chart.dates.shift()
-	chart.dates.shift()
-	chart.dates.shift()
-
-	return chart
+	console.log(is)
+	if (is != -1) {
+		chart.dates = chart.table[0].split(',')
+		chart.table = chart.table[is].split(',')
+		let j = 0;
+		while (j < 30){
+			chart.table.shift()
+			j = j + 1
+		}
+		j = 0
+		while (j < 29){
+			chart.dates.shift()
+			j = j + 1
+		}
+	}
+	else {
+		chart= {}
+	}
+	return (chart)
 }
 
 module.exports = {
+	getDataCsv,
 	getData,
 }
