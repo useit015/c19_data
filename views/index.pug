@@ -1,0 +1,34 @@
+script(src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js")
+
+canvas#myChart(width='400' height='400')
+script.
+	let a = `#{cases}`
+	let cases = a.split(",")
+	a = `#{dat}`
+	let dates = a.split(",")
+	var ctx = document.getElementById('myChart').getContext('2d');
+	var myChart = new Chart(ctx, {
+		type: 'line',
+		data: {
+			labels:  dates,
+			datasets: [{
+				fill: true,
+				label: '# of Votes',
+				data: cases,
+				backgroundColor: 
+				'rgba(255, 99, 132, 0.2)',
+				borderColor: 
+				'rgba(255, 99, 132, 1)',
+			}]
+		},
+		options: {
+			scales: {
+				xAxes: [{
+					ticks: {
+						maxRotation: 90,
+						minRotation: 90
+					}
+				}]
+			}
+		}
+	});
