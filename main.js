@@ -3,80 +3,81 @@ const { readFile } = require('fs')
 const readFileAsync = promisify(readFile)
 
 const { writeData } = require('./write')
-const { getDefenseData } = require('./ministryOfDefense')
-const { getStats, getArticles, fillMissingArticles } = require('./ ministryOfHealth')
+const { getAllNews } = require('./map')
+const { getStats, getArticles, fillMissingArticles } = require('./ministryOfHealth')
 
-const { display } = parseOptions()
-
-function parseOptions() {
+function parseOptions () {
 	return process.argv.reduce((acc, arg) => {
 		switch (arg) {
 			case '-d':
 			case '--display':
 				acc.display = true
-				break;
+				break
 		}
 		return acc
 	}, {})
 }
 
-function updateData([ stats, articles, defenseArticles ]) {
+function updateData ([ stats, articles, mapArticles ], display) {
 	if (display) {
-		console.table({
-			...stats.regions,
-			total: stats.total
-		})
+		console.log(
+			JSON.stringify(stats, null, 4)
+		)
 	}
 
 	readFileAsync('data.json', 'utf8')
 		.then(JSON.parse)
 		.then(({ articles: existingArticles }) => {
-				existingArticles = existingArticles.filter(article =>
-					!article.id.includes('defense')
+			const newArticles = articles.filter(newArticle =>
+				!existingArticles.find(article =>
+					article.id === newArticle.id
 				)
+			)
 
-				const newArticles = articles.filter(newArticle =>
-					!existingArticles.find(article =>
-						article.id === newArticle.id
-					)
-				)
-				
-				const updated = [
-					stats,
-					[
-						...defenseArticles,
+			const updated = [
+				stats,
+				{
+					map: mapArticles,
+					sante: [
 						...newArticles,
 						...existingArticles
 					]
-				]
-
-				writeData(updated)
-
-				if (newArticles.length) {
-					fillMissingArticles(updated)
 				}
-
-				console.log('Updated')
-		})
-		.catch(err => {
-			const data = [
-				stats,
-				[
-					...defenseArticles,
-					...articles
-				]
 			]
 
+			writeData(updated)
+
+			if (newArticles.length) {
+				fillMissingArticles(updated)
+			}
+		})
+		.catch(() => {
+			const data = [
+				stats,
+				{
+					sante: articles,
+					map: mapArticles
+				}
+			]
 			writeData(data)
 			fillMissingArticles(data)
 		})
 }
 
-Promise.all(
-	[
-		getStats(),
-		getArticles(),
-		// getDefenseData()
-		[]
-	]
-).then(updateData)
+
+function main () {
+
+	const { display } = parseOptions()
+
+	Promise.all(
+		[
+			getStats(),
+			getArticles(),
+			getAllNews()
+		]
+	).then(res =>
+		updateData(res, display)
+	)
+}
+
+main()
